@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1D650F">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#1D650F">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1D650F">
+    <meta>
+    <title>武大日报平安</title>
+</head>
+<body>
+<style>
+    html, body {
+        padding: 0;
+        margin: 0;
+        scrollbar-width: none;
+        font-family: "Source Han Sans", sans-serif;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+
+    #main {
+        background-image: var(--bgi-url, "");
+        background-size: cover;
+        width: 100vw;
+        height: 216.666vw;
+    }
+
+    input {
+        outline-style: none;
+        border: 0;
+        font-size: 3.8vw;
+        color: #828282;
+        background-color: transparent;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateY(-50%);
+        font-family: "Source Han Sans", sans-serif;
+    }
+
+    .info {
+        position: absolute;
+    }
+
+    #info1 {
+        left: 40vw;
+        top: 84.87vw;
+    }
+
+    #info2 {
+        left: 40vw;
+        top: 94vw;
+    }
+
+    #info3 {
+        left: 40vw;
+        top: 112.2vw;
+    }
+
+    #time {
+        font-size: 2.8vw;
+        position: absolute;
+        left: 5vw;
+        top: 2.165vw;
+    }
+
+    #date-and-time {
+        font-size: 5.5vw;
+        position: absolute;
+        color: white;
+        left: 29vw;
+        top: 67.6vw;
+    }
+</style>
+<div id="main">
+    <div id="time">15:27</div>
+    <div id="date-and-time">09-23 15:28:30.78</div>
+    <div id="info1" class="info">
+        <input type="text" id="input-location">
+    </div>
+    <div id="info2" class="info">
+        <input type="text" id="input-name">
+    </div>
+    <div id="info3" class="info">
+        <input type="text" id="input-school">
+    </div>
+</div>
+<script>
+    const bg = "BGI.jpg";
+    caches.open('v1').then(function(cache) {
+        cache.match(bg).then(response => {
+            if (response) {
+                return response.blob();
+            }
+
+            return fetch(bg).then(response => {
+                return cache.put(bg, response.clone()).then(_ => response.blob());
+            });
+        }).then(blob => {
+            const objURL = URL.createObjectURL(blob);
+            document.querySelector("#main").style.setProperty('--bgi-url', `url(${objURL})`);
+        })
+    });
+
+    const ilocation = document.querySelector("#input-location");
+    const name = document.querySelector("#input-name");
+    const school = document.querySelector("#input-school");
+
+    ilocation.value = localStorage.getItem("input-location");
+    name.value = localStorage.getItem("input-name");
+    school.value = localStorage.getItem("input-school");
+
+    ilocation.addEventListener("blur", _ => {
+        localStorage.setItem("input-location", ilocation.value);
+    });
+
+    name.addEventListener("blur", _ => {
+        localStorage.setItem("input-name", name.value);
+    });
+
+    school.addEventListener("blur", _ => {
+        localStorage.setItem("input-school", school.value);
+    });
+
+    const time = document.querySelector("#time");
+    const dt = document.querySelector("#date-and-time");
+
+    const updateTime = () => {
+        const today = new Date();
+
+        const m = (today.getMonth() + 1).toFixed(0).padStart(2, "0");
+        const d = today.getDate().toFixed(0).padStart(2, "0");
+        const h = today.getHours().toFixed(0).padStart(2, "0");
+        const min = today.getMinutes().toFixed(0).padStart(2, "0");
+        const s = today.getSeconds().toFixed(0).padStart(2, "0");
+        let milli = today.getMilliseconds() - 5;
+        milli = milli < 0 ? 0 : milli;
+        const centi = (milli / 10).toFixed(0).padStart(2, "0");
+
+        const timeString = `${h}:${min}`;
+        const dtString = `${m}-${d} ${h}:${min}:${s}.${centi}`;
+
+        time.innerText = timeString;
+        dt.innerText = dtString;
+        requestAnimationFrame(updateTime);
+    }
+    requestAnimationFrame(updateTime);
+
+    let fullscreen = false;
+    let body = document.querySelector("body");
+    body.addEventListener("dblclick", _ => {
+        if (fullscreen) {
+            document.exitFullscreen().then();
+        } else {
+            body.requestFullscreen({ navigationUI: "hide" });
+        }
+
+        fullscreen = !fullscreen;
+    });
+
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === 'hidden') {
+            localStorage.setItem("scroll-position", window.scrollY.toString());
+        }
+    });
+
+    const scrollPosition = localStorage.getItem("scroll-position");
+    if (scrollPosition) {
+        window.scrollTo(0, parseFloat(scrollPosition));
+    }
+</script>
+</body>
+</html>
